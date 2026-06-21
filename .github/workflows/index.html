@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบบันทึกและคำนวณบัญชี</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: #f5f7fb;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+        .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #34495e;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 10px;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        li {
+            background: #f9f9f9;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .income { border-left-color: #2ecc71; }
+        .expense { border-left-color: #e74c3c; }
+        .summary {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 2px dashed #eee;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ระบบจัดการร้านค้าและบัญชี</h1>
+    
+    <div class="grid">
+        <div class="card">
+            <h2>📦 บันทึกผลิตภัณฑ์ & โน้ตตัวเลข</h2>
+            <input type="text" id="prodName" placeholder="ชื่อผลิตภัณฑ์ หรือ หัวข้อโน้ต">
+            <input type="number" id="prodQty" placeholder="จำนวน / ตัวเลขที่ต้องการบันทึก">
+            <textarea id="prodMemo" placeholder="รายละเอียดเพิ่มเติม (ถ้ามี)"></textarea>
+            <button onclick="addProduct()">บันทึกข้อมูล</button>
+            
+            <h3>รายการที่บันทึกไว้</h3>
+            <ul id="productList"></ul>
+        </div>
+
+        <div class="card">
+            <h2>💰 บัญชีรายรับ - รายจ่าย</h2>
+            <input type="text" id="accDesc" placeholder="รายการ (เช่น ขายของ, ซื้ออุปกรณ์)">
+            <input type="number" id="accAmount" placeholder="จำนวนเงิน (บาท)">
+            <select id="accType">
+                <option value="income">รายรับ (+)</option>
+                <option value="expense">รายจ่าย (-)</option>
+            </select>
+            <button onclick="addAccount()" style="background-color: #2ecc71;">บันทึกบัญชี</button>
+            
+            <h3>รายการบัญชี</h3>
+            <ul id="accountList"></ul>
+            
+            <div class="summary">
+                <span>คงเหลือสุทธิ:</span>
+                <span id="totalBalance">0 ยูโร/บาท</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- ระบบบันทึกผลิตภัณฑ์ ---
+    function addProduct() {
+        const name = document.getElementById('prodName').value;
+        const qty = document.getElementById('prodQty').value;
+        const memo = document.getElementById('prodMemo').value;
+
+        if (!name || !qty) {
+            alert('กรุณากรอกชื่อและจำนวนตัวเลขด้วยครับ');
+            return;
+        }
+
+        const li = document.createElement('li');
+        li.innerHTML = `<span><strong>${name}</strong>: ${qty} ชิ้น/หน่วย <br><small>${memo}</small></span>`;
+        
+        document.getElementById('productList').appendChild(li);
+
+        // ล้างค่าในฟอร์ม
+        document.getElementById('prodName').value = '';
+        document.getElementById('prodQty').value = '';
+        document.getElementById('prodMemo').value = '';
+    }
+
+    // --- ระบบคำนวณบัญชี ---
+    let totalBalance = 0;
+
+    function addAccount() {
+        const desc = document.getElementById('accDesc').value;
+        const amount = parseFloat(document.getElementById('accAmount').value);
+        const type = document.getElementById('accType').value;
+
+        if (!desc || isNaN(amount)) {
+            alert('กรุณากรอกรายการและจำนวนเงินให้ถูกต้อง');
+            return;
+        }
+
+        const li = document.createElement('li');
+        li.classList.add(type);
+
+        if (type === 'income') {
+            totalBalance += amount;
+            li.innerHTML = `<span>${desc}</span> <span style="color:#2ecc71;">+${amount} บาท</span>`;
+        } else {
+            totalBalance -= amount;
+            li.innerHTML = `<span>${desc}</span> <span style="color:#e74c3c;">-${amount} บาท</span>`;
+        }
+
+        document.getElementById('accountList').appendChild(li);
+        document.getElementById('totalBalance').innerText = totalBalance.toLocaleString() + ' บาท';
+
+        // ล้างค่าในฟอร์ม
+        document.getElementById('accDesc').value = '';
+        document.getElementById('accAmount').value = '';
+    }
+</script>
+
+</body>
+</html>
